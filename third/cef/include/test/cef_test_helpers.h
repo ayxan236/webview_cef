@@ -1,4 +1,4 @@
-// Copyright (c) 2013 Marshall A. Greenblatt. All rights reserved.
+// Copyright (c) 2017 Marshall A. Greenblatt. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -33,50 +33,38 @@
 // support the CEF translator tool. See the translator.README.txt file in the
 // tools directory for more information.
 //
+// THIS FILE IS FOR TESTING PURPOSES ONLY.
+//
+// The APIs defined in this file are for testing purposes only. They should only
+// be included from unit test targets.
+//
 
-#ifndef CEF_INCLUDE_CEF_DRAG_HANDLER_H_
-#define CEF_INCLUDE_CEF_DRAG_HANDLER_H_
+#ifndef CEF_INCLUDE_TEST_CEF_TEST_HELPERS_H_
+#define CEF_INCLUDE_TEST_CEF_TEST_HELPERS_H_
 #pragma once
 
-#include "include/cef_base.h"
-#include "include/cef_browser.h"
-#include "include/cef_drag_data.h"
+#if !defined(BUILDING_CEF_SHARED) && !defined(WRAPPING_CEF_SHARED) && \
+    !defined(UNIT_TEST)
+#error This file can be included for unit tests only
+#endif
+
 #include "include/cef_frame.h"
 
 ///
-/// Implement this interface to handle events related to dragging. The methods
-/// of this class will be called on the UI thread.
+/// Execute JavaScript with a user gesture to trigger functionality like
+/// onbeforeunload handlers that will otherwise be blocked.
 ///
-/*--cef(source=client)--*/
-class CefDragHandler : public virtual CefBaseRefCounted {
- public:
-  typedef cef_drag_operations_mask_t DragOperationsMask;
+/*--cef(optional_param=javascript)--*/
+void CefExecuteJavaScriptWithUserGestureForTests(CefRefPtr<CefFrame> frame,
+                                                 const CefString& javascript);
 
-  ///
-  /// Called when an external drag event enters the browser window. |dragData|
-  /// contains the drag event data and |mask| represents the type of drag
-  /// operation. Return false for default drag handling behavior or true to
-  /// cancel the drag event.
-  ///
-  /*--cef()--*/
-  virtual bool OnDragEnter(CefRefPtr<CefBrowser> browser,
-                           CefRefPtr<CefDragData> dragData,
-                           DragOperationsMask mask) {
-    return false;
-  }
+///
+/// Set the DIR_SRC_TEST_DATA_ROOT directory used to load test data. Must be
+/// configured when running from a CEF binary distribution. Defaults to the
+/// "chromium/src" directory when running from a local CEF/Chromium build. |dir|
+/// must be an absolute path.
+///
+/*--cef()--*/
+void CefSetDataDirectoryForTests(const CefString& dir);
 
-  ///
-  /// Called whenever draggable regions for the browser window change. These can
-  /// be specified using the '-webkit-app-region: drag/no-drag' CSS-property. If
-  /// draggable regions are never defined in a document this method will also
-  /// never be called. If the last draggable region is removed from a document
-  /// this method will be called with an empty vector.
-  ///
-  /*--cef()--*/
-  virtual void OnDraggableRegionsChanged(
-      CefRefPtr<CefBrowser> browser,
-      CefRefPtr<CefFrame> frame,
-      const std::vector<CefDraggableRegion>& regions) {}
-};
-
-#endif  // CEF_INCLUDE_CEF_DRAG_HANDLER_H_
+#endif  // CEF_INCLUDE_TEST_CEF_TEST_HELPERS_H_

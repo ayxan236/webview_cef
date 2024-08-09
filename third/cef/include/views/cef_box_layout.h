@@ -1,4 +1,4 @@
-// Copyright (c) 2013 Marshall A. Greenblatt. All rights reserved.
+// Copyright (c) 2016 Marshall A. Greenblatt. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -34,49 +34,41 @@
 // tools directory for more information.
 //
 
-#ifndef CEF_INCLUDE_CEF_DRAG_HANDLER_H_
-#define CEF_INCLUDE_CEF_DRAG_HANDLER_H_
+#ifndef CEF_INCLUDE_VIEWS_CEF_BOX_LAYOUT_H_
+#define CEF_INCLUDE_VIEWS_CEF_BOX_LAYOUT_H_
 #pragma once
 
-#include "include/cef_base.h"
-#include "include/cef_browser.h"
-#include "include/cef_drag_data.h"
-#include "include/cef_frame.h"
+#include "include/views/cef_layout.h"
+
+class CefView;
 
 ///
-/// Implement this interface to handle events related to dragging. The methods
-/// of this class will be called on the UI thread.
+/// A Layout manager that arranges child views vertically or horizontally in a
+/// side-by-side fashion with spacing around and between the child views. The
+/// child views are always sized according to their preferred size. If the
+/// host's bounds provide insufficient space, child views will be clamped.
+/// Excess space will not be distributed. Methods must be called on the browser
+/// process UI thread unless otherwise indicated.
 ///
-/*--cef(source=client)--*/
-class CefDragHandler : public virtual CefBaseRefCounted {
+/*--cef(source=library)--*/
+class CefBoxLayout : public CefLayout {
  public:
-  typedef cef_drag_operations_mask_t DragOperationsMask;
-
   ///
-  /// Called when an external drag event enters the browser window. |dragData|
-  /// contains the drag event data and |mask| represents the type of drag
-  /// operation. Return false for default drag handling behavior or true to
-  /// cancel the drag event.
-  ///
-  /*--cef()--*/
-  virtual bool OnDragEnter(CefRefPtr<CefBrowser> browser,
-                           CefRefPtr<CefDragData> dragData,
-                           DragOperationsMask mask) {
-    return false;
-  }
-
-  ///
-  /// Called whenever draggable regions for the browser window change. These can
-  /// be specified using the '-webkit-app-region: drag/no-drag' CSS-property. If
-  /// draggable regions are never defined in a document this method will also
-  /// never be called. If the last draggable region is removed from a document
-  /// this method will be called with an empty vector.
+  /// Set the flex weight for the given |view|. Using the preferred size as
+  /// the basis, free space along the main axis is distributed to views in the
+  /// ratio of their flex weights. Similarly, if the views will overflow the
+  /// parent, space is subtracted in these ratios. A flex of 0 means this view
+  /// is not resized. Flex values must not be negative.
   ///
   /*--cef()--*/
-  virtual void OnDraggableRegionsChanged(
-      CefRefPtr<CefBrowser> browser,
-      CefRefPtr<CefFrame> frame,
-      const std::vector<CefDraggableRegion>& regions) {}
+  virtual void SetFlexForView(CefRefPtr<CefView> view, int flex) = 0;
+
+  ///
+  /// Clears the flex for the given |view|, causing it to use the default flex
+  /// specified via CefBoxLayoutSettings.default_flex.
+  ///
+  /*--cef()--*/
+  virtual void ClearFlexForView(CefRefPtr<CefView> view) = 0;
 };
 
-#endif  // CEF_INCLUDE_CEF_DRAG_HANDLER_H_
+#endif  // CEF_INCLUDE_VIEWS_CEF_BOX_LAYOUT_H_

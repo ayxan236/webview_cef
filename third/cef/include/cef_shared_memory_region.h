@@ -1,4 +1,4 @@
-// Copyright (c) 2013 Marshall A. Greenblatt. All rights reserved.
+// Copyright (c) 2022 Marshall A. Greenblatt. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -34,49 +34,36 @@
 // tools directory for more information.
 //
 
-#ifndef CEF_INCLUDE_CEF_DRAG_HANDLER_H_
-#define CEF_INCLUDE_CEF_DRAG_HANDLER_H_
+#ifndef CEF_INCLUDE_CEF_SHARED_MEMORY_REGION_H_
+#define CEF_INCLUDE_CEF_SHARED_MEMORY_REGION_H_
 #pragma once
 
 #include "include/cef_base.h"
-#include "include/cef_browser.h"
-#include "include/cef_drag_data.h"
-#include "include/cef_frame.h"
 
 ///
-/// Implement this interface to handle events related to dragging. The methods
-/// of this class will be called on the UI thread.
+/// Class that wraps platform-dependent share memory region mapping.
 ///
-/*--cef(source=client)--*/
-class CefDragHandler : public virtual CefBaseRefCounted {
+/*--cef(source=library)--*/
+class CefSharedMemoryRegion : public virtual CefBaseRefCounted {
  public:
-  typedef cef_drag_operations_mask_t DragOperationsMask;
-
   ///
-  /// Called when an external drag event enters the browser window. |dragData|
-  /// contains the drag event data and |mask| represents the type of drag
-  /// operation. Return false for default drag handling behavior or true to
-  /// cancel the drag event.
+  /// Returns true if the mapping is valid.
   ///
   /*--cef()--*/
-  virtual bool OnDragEnter(CefRefPtr<CefBrowser> browser,
-                           CefRefPtr<CefDragData> dragData,
-                           DragOperationsMask mask) {
-    return false;
-  }
+  virtual bool IsValid() = 0;
 
   ///
-  /// Called whenever draggable regions for the browser window change. These can
-  /// be specified using the '-webkit-app-region: drag/no-drag' CSS-property. If
-  /// draggable regions are never defined in a document this method will also
-  /// never be called. If the last draggable region is removed from a document
-  /// this method will be called with an empty vector.
+  /// Returns the size of the mapping in bytes. Returns 0 for invalid instances.
   ///
   /*--cef()--*/
-  virtual void OnDraggableRegionsChanged(
-      CefRefPtr<CefBrowser> browser,
-      CefRefPtr<CefFrame> frame,
-      const std::vector<CefDraggableRegion>& regions) {}
+  virtual size_t Size() = 0;
+
+  ///
+  /// Returns the pointer to the memory. Returns nullptr for invalid instances.
+  /// The returned pointer is only valid for the life span of this object.
+  ///
+  /*--cef()--*/
+  virtual const void* Memory() = 0;
 };
 
-#endif  // CEF_INCLUDE_CEF_DRAG_HANDLER_H_
+#endif  // CEF_INCLUDE_CEF_SHARED_MEMORY_REGION_H_

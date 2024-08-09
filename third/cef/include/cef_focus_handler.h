@@ -1,4 +1,4 @@
-// Copyright (c) 2013 Marshall A. Greenblatt. All rights reserved.
+// Copyright (c) 2012 Marshall A. Greenblatt. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -34,49 +34,48 @@
 // tools directory for more information.
 //
 
-#ifndef CEF_INCLUDE_CEF_DRAG_HANDLER_H_
-#define CEF_INCLUDE_CEF_DRAG_HANDLER_H_
+#ifndef CEF_INCLUDE_CEF_FOCUS_HANDLER_H_
+#define CEF_INCLUDE_CEF_FOCUS_HANDLER_H_
 #pragma once
 
 #include "include/cef_base.h"
 #include "include/cef_browser.h"
-#include "include/cef_drag_data.h"
+#include "include/cef_dom.h"
 #include "include/cef_frame.h"
 
 ///
-/// Implement this interface to handle events related to dragging. The methods
-/// of this class will be called on the UI thread.
+/// Implement this interface to handle events related to focus. The methods of
+/// this class will be called on the UI thread.
 ///
 /*--cef(source=client)--*/
-class CefDragHandler : public virtual CefBaseRefCounted {
+class CefFocusHandler : public virtual CefBaseRefCounted {
  public:
-  typedef cef_drag_operations_mask_t DragOperationsMask;
+  typedef cef_focus_source_t FocusSource;
 
   ///
-  /// Called when an external drag event enters the browser window. |dragData|
-  /// contains the drag event data and |mask| represents the type of drag
-  /// operation. Return false for default drag handling behavior or true to
-  /// cancel the drag event.
+  /// Called when the browser component is about to loose focus. For instance,
+  /// if focus was on the last HTML element and the user pressed the TAB key.
+  /// |next| will be true if the browser is giving focus to the next component
+  /// and false if the browser is giving focus to the previous component.
   ///
   /*--cef()--*/
-  virtual bool OnDragEnter(CefRefPtr<CefBrowser> browser,
-                           CefRefPtr<CefDragData> dragData,
-                           DragOperationsMask mask) {
+  virtual void OnTakeFocus(CefRefPtr<CefBrowser> browser, bool next) {}
+
+  ///
+  /// Called when the browser component is requesting focus. |source| indicates
+  /// where the focus request is originating from. Return false to allow the
+  /// focus to be set or true to cancel setting the focus.
+  ///
+  /*--cef()--*/
+  virtual bool OnSetFocus(CefRefPtr<CefBrowser> browser, FocusSource source) {
     return false;
   }
 
   ///
-  /// Called whenever draggable regions for the browser window change. These can
-  /// be specified using the '-webkit-app-region: drag/no-drag' CSS-property. If
-  /// draggable regions are never defined in a document this method will also
-  /// never be called. If the last draggable region is removed from a document
-  /// this method will be called with an empty vector.
+  /// Called when the browser component has received focus.
   ///
   /*--cef()--*/
-  virtual void OnDraggableRegionsChanged(
-      CefRefPtr<CefBrowser> browser,
-      CefRefPtr<CefFrame> frame,
-      const std::vector<CefDraggableRegion>& regions) {}
+  virtual void OnGotFocus(CefRefPtr<CefBrowser> browser) {}
 };
 
-#endif  // CEF_INCLUDE_CEF_DRAG_HANDLER_H_
+#endif  // CEF_INCLUDE_CEF_FOCUS_HANDLER_H_

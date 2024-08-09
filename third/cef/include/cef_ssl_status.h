@@ -1,4 +1,4 @@
-// Copyright (c) 2013 Marshall A. Greenblatt. All rights reserved.
+// Copyright (c) 2016 Marshall A. Greenblatt. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -34,49 +34,50 @@
 // tools directory for more information.
 //
 
-#ifndef CEF_INCLUDE_CEF_DRAG_HANDLER_H_
-#define CEF_INCLUDE_CEF_DRAG_HANDLER_H_
+#ifndef CEF_INCLUDE_CEF_SSL_STATUS_H_
+#define CEF_INCLUDE_CEF_SSL_STATUS_H_
 #pragma once
 
 #include "include/cef_base.h"
-#include "include/cef_browser.h"
-#include "include/cef_drag_data.h"
-#include "include/cef_frame.h"
+#include "include/cef_values.h"
+#include "include/cef_x509_certificate.h"
 
 ///
-/// Implement this interface to handle events related to dragging. The methods
-/// of this class will be called on the UI thread.
+/// Class representing the SSL information for a navigation entry.
 ///
-/*--cef(source=client)--*/
-class CefDragHandler : public virtual CefBaseRefCounted {
+/*--cef(source=library)--*/
+class CefSSLStatus : public virtual CefBaseRefCounted {
  public:
-  typedef cef_drag_operations_mask_t DragOperationsMask;
-
   ///
-  /// Called when an external drag event enters the browser window. |dragData|
-  /// contains the drag event data and |mask| represents the type of drag
-  /// operation. Return false for default drag handling behavior or true to
-  /// cancel the drag event.
+  /// Returns true if the status is related to a secure SSL/TLS connection.
   ///
   /*--cef()--*/
-  virtual bool OnDragEnter(CefRefPtr<CefBrowser> browser,
-                           CefRefPtr<CefDragData> dragData,
-                           DragOperationsMask mask) {
-    return false;
-  }
+  virtual bool IsSecureConnection() = 0;
 
   ///
-  /// Called whenever draggable regions for the browser window change. These can
-  /// be specified using the '-webkit-app-region: drag/no-drag' CSS-property. If
-  /// draggable regions are never defined in a document this method will also
-  /// never be called. If the last draggable region is removed from a document
-  /// this method will be called with an empty vector.
+  /// Returns a bitmask containing any and all problems verifying the server
+  /// certificate.
+  ///
+  /*--cef(default_retval=CERT_STATUS_NONE)--*/
+  virtual cef_cert_status_t GetCertStatus() = 0;
+
+  ///
+  /// Returns the SSL version used for the SSL connection.
+  ///
+  /*--cef(default_retval=SSL_CONNECTION_VERSION_UNKNOWN)--*/
+  virtual cef_ssl_version_t GetSSLVersion() = 0;
+
+  ///
+  /// Returns a bitmask containing the page security content status.
+  ///
+  /*--cef(default_retval=SSL_CONTENT_NORMAL_CONTENT)--*/
+  virtual cef_ssl_content_status_t GetContentStatus() = 0;
+
+  ///
+  /// Returns the X.509 certificate.
   ///
   /*--cef()--*/
-  virtual void OnDraggableRegionsChanged(
-      CefRefPtr<CefBrowser> browser,
-      CefRefPtr<CefFrame> frame,
-      const std::vector<CefDraggableRegion>& regions) {}
+  virtual CefRefPtr<CefX509Certificate> GetX509Certificate() = 0;
 };
 
-#endif  // CEF_INCLUDE_CEF_DRAG_HANDLER_H_
+#endif  // CEF_INCLUDE_CEF_SSL_STATUS_H_

@@ -1,4 +1,4 @@
-// Copyright (c) 2013 Marshall A. Greenblatt. All rights reserved.
+// Copyright (c) 2022 Marshall A. Greenblatt. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -34,49 +34,54 @@
 // tools directory for more information.
 //
 
-#ifndef CEF_INCLUDE_CEF_DRAG_HANDLER_H_
-#define CEF_INCLUDE_CEF_DRAG_HANDLER_H_
+#ifndef CEF_INCLUDE_CEF_SHARED_PROCESS_MESSAGE_BUILDER_H_
+#define CEF_INCLUDE_CEF_SHARED_PROCESS_MESSAGE_BUILDER_H_
 #pragma once
 
-#include "include/cef_base.h"
-#include "include/cef_browser.h"
-#include "include/cef_drag_data.h"
-#include "include/cef_frame.h"
+#include "include/cef_process_message.h"
 
 ///
-/// Implement this interface to handle events related to dragging. The methods
-/// of this class will be called on the UI thread.
+/// Class that builds a CefProcessMessage containing a shared memory region.
+/// This class is not thread-safe but may be used exclusively on a different
+/// thread from the one which constructed it.
 ///
-/*--cef(source=client)--*/
-class CefDragHandler : public virtual CefBaseRefCounted {
+/*--cef(source=library)--*/
+class CefSharedProcessMessageBuilder : public virtual CefBaseRefCounted {
  public:
-  typedef cef_drag_operations_mask_t DragOperationsMask;
-
   ///
-  /// Called when an external drag event enters the browser window. |dragData|
-  /// contains the drag event data and |mask| represents the type of drag
-  /// operation. Return false for default drag handling behavior or true to
-  /// cancel the drag event.
+  /// Creates a new CefSharedProcessMessageBuilder with the specified |name| and
+  /// shared memory region of specified |byte_size|.
   ///
   /*--cef()--*/
-  virtual bool OnDragEnter(CefRefPtr<CefBrowser> browser,
-                           CefRefPtr<CefDragData> dragData,
-                           DragOperationsMask mask) {
-    return false;
-  }
-
+  static CefRefPtr<CefSharedProcessMessageBuilder> Create(const CefString& name,
+                                                          size_t byte_size);
   ///
-  /// Called whenever draggable regions for the browser window change. These can
-  /// be specified using the '-webkit-app-region: drag/no-drag' CSS-property. If
-  /// draggable regions are never defined in a document this method will also
-  /// never be called. If the last draggable region is removed from a document
-  /// this method will be called with an empty vector.
+  /// Returns true if the builder is valid.
   ///
   /*--cef()--*/
-  virtual void OnDraggableRegionsChanged(
-      CefRefPtr<CefBrowser> browser,
-      CefRefPtr<CefFrame> frame,
-      const std::vector<CefDraggableRegion>& regions) {}
+  virtual bool IsValid() = 0;
+
+  ///
+  /// Returns the size of the shared memory region in bytes. Returns 0 for
+  /// invalid instances.
+  ///
+  /*--cef()--*/
+  virtual size_t Size() = 0;
+
+  ///
+  /// Returns the pointer to the writable memory. Returns nullptr for invalid
+  /// instances. The returned pointer is only valid for the life span of this
+  /// object.
+  ///
+  /*--cef()--*/
+  virtual void* Memory() = 0;
+
+  ///
+  /// Creates a new CefProcessMessage from the data provided to the builder.
+  /// Returns nullptr for invalid instances. Invalidates the builder instance.
+  ///
+  /*--cef()--*/
+  virtual CefRefPtr<CefProcessMessage> Build() = 0;
 };
 
-#endif  // CEF_INCLUDE_CEF_DRAG_HANDLER_H_
+#endif  // CEF_INCLUDE_CEF_SHARED_PROCESS_MESSAGE_BUILDER_H_

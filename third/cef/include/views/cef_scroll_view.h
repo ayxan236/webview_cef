@@ -1,4 +1,4 @@
-// Copyright (c) 2013 Marshall A. Greenblatt. All rights reserved.
+// Copyright (c) 2016 Marshall A. Greenblatt. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -34,49 +34,69 @@
 // tools directory for more information.
 //
 
-#ifndef CEF_INCLUDE_CEF_DRAG_HANDLER_H_
-#define CEF_INCLUDE_CEF_DRAG_HANDLER_H_
+#ifndef CEF_INCLUDE_VIEWS_CEF_SCROLL_VIEW_H_
+#define CEF_INCLUDE_VIEWS_CEF_SCROLL_VIEW_H_
 #pragma once
 
-#include "include/cef_base.h"
-#include "include/cef_browser.h"
-#include "include/cef_drag_data.h"
-#include "include/cef_frame.h"
+#include "include/views/cef_view.h"
 
 ///
-/// Implement this interface to handle events related to dragging. The methods
-/// of this class will be called on the UI thread.
+/// A ScrollView will show horizontal and/or vertical scrollbars when necessary
+/// based on the size of the attached content view. Methods must be called on
+/// the browser process UI thread unless otherwise indicated.
 ///
-/*--cef(source=client)--*/
-class CefDragHandler : public virtual CefBaseRefCounted {
+/*--cef(source=library)--*/
+class CefScrollView : public CefView {
  public:
-  typedef cef_drag_operations_mask_t DragOperationsMask;
+  ///
+  /// Create a new ScrollView.
+  ///
+  /*--cef(optional_param=delegate)--*/
+  static CefRefPtr<CefScrollView> CreateScrollView(
+      CefRefPtr<CefViewDelegate> delegate);
 
   ///
-  /// Called when an external drag event enters the browser window. |dragData|
-  /// contains the drag event data and |mask| represents the type of drag
-  /// operation. Return false for default drag handling behavior or true to
-  /// cancel the drag event.
+  /// Set the content View. The content View must have a specified size (e.g.
+  /// via CefView::SetBounds or CefViewDelegate::GetPreferredSize).
   ///
   /*--cef()--*/
-  virtual bool OnDragEnter(CefRefPtr<CefBrowser> browser,
-                           CefRefPtr<CefDragData> dragData,
-                           DragOperationsMask mask) {
-    return false;
-  }
+  virtual void SetContentView(CefRefPtr<CefView> view) = 0;
 
   ///
-  /// Called whenever draggable regions for the browser window change. These can
-  /// be specified using the '-webkit-app-region: drag/no-drag' CSS-property. If
-  /// draggable regions are never defined in a document this method will also
-  /// never be called. If the last draggable region is removed from a document
-  /// this method will be called with an empty vector.
+  /// Returns the content View.
   ///
   /*--cef()--*/
-  virtual void OnDraggableRegionsChanged(
-      CefRefPtr<CefBrowser> browser,
-      CefRefPtr<CefFrame> frame,
-      const std::vector<CefDraggableRegion>& regions) {}
+  virtual CefRefPtr<CefView> GetContentView() = 0;
+
+  ///
+  /// Returns the visible region of the content View.
+  ///
+  /*--cef()--*/
+  virtual CefRect GetVisibleContentRect() = 0;
+
+  ///
+  /// Returns true if the horizontal scrollbar is currently showing.
+  ///
+  /*--cef()--*/
+  virtual bool HasHorizontalScrollbar() = 0;
+
+  ///
+  /// Returns the height of the horizontal scrollbar.
+  ///
+  /*--cef()--*/
+  virtual int GetHorizontalScrollbarHeight() = 0;
+
+  ///
+  /// Returns true if the vertical scrollbar is currently showing.
+  ///
+  /*--cef()--*/
+  virtual bool HasVerticalScrollbar() = 0;
+
+  ///
+  /// Returns the width of the vertical scrollbar.
+  ///
+  /*--cef()--*/
+  virtual int GetVerticalScrollbarWidth() = 0;
 };
 
-#endif  // CEF_INCLUDE_CEF_DRAG_HANDLER_H_
+#endif  // CEF_INCLUDE_VIEWS_CEF_SCROLL_VIEW_H_

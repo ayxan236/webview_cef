@@ -1,4 +1,4 @@
-// Copyright (c) 2013 Marshall A. Greenblatt. All rights reserved.
+// Copyright (c) 2016 Marshall A. Greenblatt. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -34,49 +34,59 @@
 // tools directory for more information.
 //
 
-#ifndef CEF_INCLUDE_CEF_DRAG_HANDLER_H_
-#define CEF_INCLUDE_CEF_DRAG_HANDLER_H_
+#ifndef CEF_INCLUDE_VIEWS_CEF_BUTTON_H_
+#define CEF_INCLUDE_VIEWS_CEF_BUTTON_H_
 #pragma once
 
-#include "include/cef_base.h"
-#include "include/cef_browser.h"
-#include "include/cef_drag_data.h"
-#include "include/cef_frame.h"
+#include "include/views/cef_view.h"
+
+class CefLabelButton;
 
 ///
-/// Implement this interface to handle events related to dragging. The methods
-/// of this class will be called on the UI thread.
+/// A View representing a button. Depending on the specific type, the button
+/// could be implemented by a native control or custom rendered. Methods must be
+/// called on the browser process UI thread unless otherwise indicated.
 ///
-/*--cef(source=client)--*/
-class CefDragHandler : public virtual CefBaseRefCounted {
+/*--cef(source=library)--*/
+class CefButton : public CefView {
  public:
-  typedef cef_drag_operations_mask_t DragOperationsMask;
-
   ///
-  /// Called when an external drag event enters the browser window. |dragData|
-  /// contains the drag event data and |mask| represents the type of drag
-  /// operation. Return false for default drag handling behavior or true to
-  /// cancel the drag event.
+  /// Returns this Button as a LabelButton or NULL if this is not a LabelButton.
   ///
   /*--cef()--*/
-  virtual bool OnDragEnter(CefRefPtr<CefBrowser> browser,
-                           CefRefPtr<CefDragData> dragData,
-                           DragOperationsMask mask) {
-    return false;
-  }
+  virtual CefRefPtr<CefLabelButton> AsLabelButton() = 0;
 
   ///
-  /// Called whenever draggable regions for the browser window change. These can
-  /// be specified using the '-webkit-app-region: drag/no-drag' CSS-property. If
-  /// draggable regions are never defined in a document this method will also
-  /// never be called. If the last draggable region is removed from a document
-  /// this method will be called with an empty vector.
+  /// Sets the current display state of the Button.
   ///
   /*--cef()--*/
-  virtual void OnDraggableRegionsChanged(
-      CefRefPtr<CefBrowser> browser,
-      CefRefPtr<CefFrame> frame,
-      const std::vector<CefDraggableRegion>& regions) {}
+  virtual void SetState(cef_button_state_t state) = 0;
+
+  ///
+  /// Returns the current display state of the Button.
+  ///
+  /*--cef(default_retval=CEF_BUTTON_STATE_NORMAL)--*/
+  virtual cef_button_state_t GetState() = 0;
+
+  ///
+  /// Sets the Button will use an ink drop effect for displaying state changes.
+  ///
+  /*--cef()--*/
+  virtual void SetInkDropEnabled(bool enabled) = 0;
+
+  ///
+  /// Sets the tooltip text that will be displayed when the user hovers the
+  /// mouse cursor over the Button.
+  ///
+  /*--cef()--*/
+  virtual void SetTooltipText(const CefString& tooltip_text) = 0;
+
+  ///
+  /// Sets the accessible name that will be exposed to assistive technology
+  /// (AT).
+  ///
+  /*--cef()--*/
+  virtual void SetAccessibleName(const CefString& name) = 0;
 };
 
-#endif  // CEF_INCLUDE_CEF_DRAG_HANDLER_H_
+#endif  // CEF_INCLUDE_VIEWS_CEF_BUTTON_H_
